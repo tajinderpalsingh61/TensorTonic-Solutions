@@ -10,7 +10,6 @@ def multi_head_attention(Q: np.ndarray, K: np.ndarray, V: np.ndarray,
     """
     Compute multi-head attention.
     """
-    # Your code here
     B, N, d_model = Q.shape
     num_heads = 4
     d_k = int(d_model/num_heads)
