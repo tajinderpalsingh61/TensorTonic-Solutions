@@ -14,7 +14,7 @@ def cached_causal_attention(
 
     key_cache = None
     value_cache = None
-    outputs = torch.zeros((batch_size, seq_len, d_v), dtype=query.dtype)
+    outputs = torch.zeros((batch_size, seq_len, d_v), dtype=query.dtype) # V's last dimension (its actual feature width, d_v) is completely free to be anything, since it just determines how wide each output vector ends up being.
     
     for t in range(seq_len):
         q_t = query[:, t: t+1, :]
