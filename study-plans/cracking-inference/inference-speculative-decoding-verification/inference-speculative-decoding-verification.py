@@ -18,9 +18,7 @@ def verify_speculative_tokens(
         token = draft_token_ids[i].item()
         p_draft = draft_distributions[i, token].item()
         p_target = target_distributions[i, token].item()
-
         accept_prob = min(1.0, p_target / p_draft) if p_draft > 0 else 0.0
-
         if uniform_draws[i].item() < accept_prob:
             accepted_count += 1
         else:
@@ -32,8 +30,13 @@ def verify_speculative_tokens(
         residual = torch.clamp(
             target_distributions[accepted_count] - draft_distributions[accepted_count], min=0.0
         )
-        next_dist = residual / residual.sum()
+        residual_sum = residual.sum()
+        # Defensive fallback (not hit by the given examples, but guards the
+        # adversarial p_draft=0 case where target==draft exactly at this row).
+        next_dist = residual / residual_sum if residual_sum > 0 else target_distributions[accepted_count]
 
+    # The FINAL sampling draw is always uniform_draws[K] -- the dedicated
+    # last entry -- regardless of whether rejection happened early or not.
     cumulative = torch.cumsum(next_dist, dim=-1)
     draw = uniform_draws[K].unsqueeze(0)
     next_token = torch.searchsorted(cumulative, draw, right=True).squeeze(0)
